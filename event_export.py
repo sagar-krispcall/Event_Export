@@ -16,7 +16,11 @@ STATIC_EVENTS = [
     "Inbound Calls",
     "Outbound SMS",
     "Inbound SMS",
-    "Agent Added"
+    "Agent Added",
+    "Business Domain Subscription",
+    "Phone Number Purchased",
+    "Phone Number Renewed",
+    "Phone Number Assigned"
 ]
 
 # --- USER INPUTS ---
@@ -30,11 +34,15 @@ with col1:
 with col2:
     to_date = st.date_input("To Date", datetime(2025, 8, 31))
 
-file_name_input = st.text_input("Output CSV filename:", "mixpanel_export")
+st.markdown("### Optional Filter (Mixpanel where expression)")
+where_expression = st.text_input(
+    'Enter Mixpanel "where" expression (e.g., properties["Plan"]=="Pro")'
+)
 
+file_name_input = st.text_input("Output CSV filename:", "mixpanel_export")
 run = st.button("Run Export")
 
-# --- GET API KEY SECURELY ---
+# --- GET API KEY & PROJECT ID SECURELY ---
 try:
     API_KEY = st.secrets["MIXPANEL_API_KEY"]
     PROJECT_ID = st.secrets["MIXPANEL_PROJECT_ID"]
@@ -50,14 +58,11 @@ if run:
     if not events_selected:
         st.warning("Please select at least one event.")
     else:
-        # Ensure filename ends with .csv
         filename = file_name_input.strip()
         if not filename.lower().endswith(".csv"):
             filename += ".csv"
 
         event_array_json = json.dumps(events_selected)
-
-        # Convert dates to string format YYYY-MM-DD
         from_date_str = from_date.strftime("%Y-%m-%d")
         to_date_str = to_date.strftime("%Y-%m-%d")
 
@@ -66,12 +71,14 @@ if run:
             f"&from_date={from_date_str}&to_date={to_date_str}&event={event_array_json}"
         )
 
+        if where_expression.strip():
+            url += f"&where={where_expression}"
+
         headers = {
             "accept": "text/plain",
             "authorization": f"Basic {API_KEY}",
         }
 
-        # --- FETCH DATA ---
         with st.spinner("Fetching data from Mixpanel..."):
             try:
                 response = requests.get(url, headers=headers)
@@ -82,29 +89,44 @@ if run:
         if response.status_code == 200:
             with st.spinner("Processing data..."):
                 try:
-                    # Parse JSON lines
                     data_json = [json.loads(line) for line in response.text.strip().split("\n")]
                     df = pd.DataFrame(data_json)
 
-                    # Flatten properties
                     if "properties" in df.columns:
                         prop_df = pd.json_normalize(df["properties"])
                         df = pd.concat([df.drop(columns=["properties"]), prop_df], axis=1)
 
-                    # Drop duplicates and sort
                     if "$insert_id" in df.columns:
                         df = df.drop_duplicates(subset="$insert_id").sort_values("$insert_id")
 
-                    st.success(f"Export complete. Total rows: {len(df)}")
-                    st.dataframe(df.head(10))
+                    st.success(f"Data fetched! Total rows: {len(df)}")
 
-                    # Download CSV
-                    csv_data = df.to_csv(index=False).encode("utf-8")
-                    st.download_button("Download CSV", csv_data, filename, "text/csv")
+                    # --- STORE dataframe in session state for column filter ---
+                    st.session_state["event_df"] = df
+
                 except Exception as e:
                     st.error(f"Error processing data: {e}")
+                    st.stop()
         else:
             st.error(f"Error fetching data. Status code: {response.status_code}")
+            st.stop()
 
-# --- End of Script ---
-print("\n--- End of Event Export Script ---\n")
+# --- COLUMN FILTER AND DOWNLOAD ---
+if "event_df" in st.session_state:
+    df = st.session_state["event_df"]
+
+    st.markdown("### Optional Column Filter")
+    selected_cols = st.multiselect(
+        "Select columns to export (leave empty to export all):",
+        options=df.columns.tolist()
+    )
+
+    if selected_cols:
+        export_df = df[selected_cols]
+    else:
+        export_df = df
+
+    st.dataframe(export_df.head(10))
+
+    csv_data = export_df.to_csv(index=False).encode("utf-8")
+    st.download_button("Download CSV", csv_data, file_name_input.strip()+".csv", "text/csv")
