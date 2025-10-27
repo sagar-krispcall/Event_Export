@@ -107,3 +107,4 @@ if run:
             st.error(f"Error fetching data. Status code: {response.status_code}")
 
 # --- End of Script ---
+print("\n--- End of Event Export Script ---\n")
