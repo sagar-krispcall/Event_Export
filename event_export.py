@@ -6,7 +6,7 @@ from datetime import datetime
 
 # --- PAGE SETUP ---
 st.set_page_config(page_title="Mixpanel Event Exporter", layout="wide")
-st.title("Mixpanel Event Exporter")
+st.title("📊 Mixpanel Event Exporter")
 
 # --- STATIC EVENT LIST ---
 STATIC_EVENTS = [
@@ -37,13 +37,13 @@ with col1:
 with col2:
     to_date = st.date_input("To Date", datetime(2025, 8, 31))
 
-st.markdown("### Optional Filter (Mixpanel where expression)")
+st.markdown("### 🔍 Optional Filter (Mixpanel where expression)")
 where_expression = st.text_input(
     'Enter Mixpanel "where" expression (e.g., properties["Plan"]=="Pro")'
 )
 
 file_name_input = st.text_input("Output CSV filename:", "mixpanel_export")
-run = st.button("Run Export")
+run = st.button("🚀 Run Export")
 
 # --- GET API KEY & PROJECT ID SECURELY ---
 try:
@@ -82,7 +82,7 @@ if run:
             "authorization": f"Basic {API_KEY}",
         }
 
-        with st.spinner("Fetching data from Mixpanel..."):
+        with st.spinner("⏳ Fetching data from Mixpanel..."):
             try:
                 response = requests.get(url, headers=headers)
             except Exception as e:
@@ -102,7 +102,7 @@ if run:
                     if "$insert_id" in df.columns:
                         df = df.drop_duplicates(subset="$insert_id").sort_values("$insert_id")
 
-                    st.success(f"Data fetched! Total rows: {len(df)}")
+                    st.success(f"✅ Data fetched! Total rows: {len(df)}")
 
                     # --- STORE dataframe in session state for column filter ---
                     st.session_state["event_df"] = df
@@ -118,7 +118,7 @@ if run:
 if "event_df" in st.session_state:
     df = st.session_state["event_df"]
 
-    st.markdown("### Optional Column Filter")
+    st.markdown("### 🧩 Optional Column Filter")
     selected_cols = st.multiselect(
         "Select columns to export (leave empty to export all):",
         options=df.columns.tolist()
@@ -133,4 +133,4 @@ if "event_df" in st.session_state:
     st.dataframe(export_df)
 
     csv_data = export_df.to_csv(index=False).encode("utf-8")
-    st.download_button("Download CSV", csv_data, file_name_input.strip()+".csv", "text/csv")
+    st.download_button("⬇️ Download CSV", csv_data, file_name_input.strip()+".csv", "text/csv")
