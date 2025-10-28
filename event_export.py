@@ -11,6 +11,7 @@ st.title("Mixpanel Event Exporter")
 # --- STATIC EVENT LIST ---
 STATIC_EVENTS = [
     "New Payment Made",
+    "Guest Payment",
     "Refund Granted",
     "Outbound Calls",
     "Inbound Calls",
@@ -126,7 +127,8 @@ if "event_df" in st.session_state:
     else:
         export_df = df
 
-    st.dataframe(export_df.head(10))
+    export_df = export_df.reset_index(drop=True)
+    st.dataframe(export_df)
 
     csv_data = export_df.to_csv(index=False).encode("utf-8")
     st.download_button("Download CSV", csv_data, file_name_input.strip()+".csv", "text/csv")
