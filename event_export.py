@@ -21,7 +21,9 @@ STATIC_EVENTS = [
     "Business Domain Subscription",
     "Phone Number Purchased",
     "Phone Number Renewed",
-    "Phone Number Assigned"
+    "Phone Number Assigned",
+    "[Auto] Page View",
+    "New User Sign-up"
 ]
 
 # --- USER INPUTS ---
