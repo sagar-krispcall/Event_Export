@@ -33,16 +33,16 @@ events_selected = st.multiselect(
 
 col1, col2 = st.columns(2)
 with col1:
-    from_date = st.date_input("From Date", datetime(2025, 8, 1))
+    from_date = st.date_input("📅 From Date", datetime(2025, 8, 1))
 with col2:
-    to_date = st.date_input("To Date", datetime(2025, 8, 31))
+    to_date = st.date_input("📅 To Date", datetime(2025, 8, 31))
 
 st.markdown("### 🔍 Optional Filter (Mixpanel where expression)")
 where_expression = st.text_input(
     'Enter Mixpanel "where" expression (e.g., properties["Plan"]=="Pro")'
 )
 
-file_name_input = st.text_input("Output CSV filename:", "mixpanel_export")
+file_name_input = st.text_input("💾 Output CSV filename:", "mixpanel_export")
 run = st.button("🚀 Run Export")
 
 # --- GET API KEY & PROJECT ID SECURELY ---
@@ -59,7 +59,7 @@ except Exception:
 # --- RUN EXPORT LOGIC ---
 if run:
     if not events_selected:
-        st.warning("Please select at least one event.")
+        st.warning("⚠️ Please select at least one event.")
     else:
         filename = file_name_input.strip()
         if not filename.lower().endswith(".csv"):
@@ -108,10 +108,10 @@ if run:
                     st.session_state["event_df"] = df
 
                 except Exception as e:
-                    st.error(f"Error processing data: {e}")
+                    st.error(f"❌ Error processing data: {e}")
                     st.stop()
         else:
-            st.error(f"Error fetching data. Status code: {response.status_code}")
+            st.error(f"❌ Error fetching data. Status code: {response.status_code}")
             st.stop()
 
 # --- COLUMN FILTER AND DOWNLOAD ---
