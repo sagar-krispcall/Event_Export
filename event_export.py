@@ -130,7 +130,7 @@ if "event_df" in st.session_state:
         export_df = df
 
     export_df = export_df.reset_index(drop=True)
-    st.dataframe(export_df)
+    st.dataframe(export_df.head(10))
 
     csv_data = export_df.to_csv(index=False).encode("utf-8")
     st.download_button("⬇️ Download CSV", csv_data, file_name_input.strip()+".csv", "text/csv")
