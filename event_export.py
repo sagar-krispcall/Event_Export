@@ -23,7 +23,8 @@ STATIC_EVENTS = [
     "Phone Number Renewed",
     "Phone Number Assigned",
     "[Auto] Page View",
-    "New User Sign-up"
+    "New User Sign-up",
+    "Unpaid Signup User Details"
 ]
 
 # --- USER INPUTS ---
